@@ -499,15 +499,27 @@ class MonadAPIClient {
             .split('\n')
             .filter(Boolean);
 
-        // if (!this.proxies || this.proxies.length < wallets.length) {
-        //     this.log(`Không đủ proxy! Số ví: ${wallets.length}, Số proxy: ${this.proxies ? this.proxies.length : 0}`, 'error');
-        //     this.log('Chương trình yêu cầu số lượng proxy phải bằng hoặc lớn hơn số lượng ví.', 'error');
-        //     process.exit(1);
-        // }
-
         this.log("Dân cày airdrop - Đã sợ thì đừng dùng, đã dùng thì đừng sợ...", 'info');
-        await this.processWallets(wallets, 30);
-        this.log("Hoàn thành xử lý tất cả các ví!", 'success');
+
+        // Run indefinitely with sleep between rounds
+        while (true) {
+            try {
+                await this.processWallets(wallets, 30);
+                this.log("Hoàn thành xử lý tất cả các ví!", 'success');
+
+                // Calculate sleep time: 7 hours 15 minutes = (7 * 60 * 60 + 15 * 60) = 26,100 seconds
+                const sleepSeconds = 7 * 60 * 60 + 15 * 60; // 26,100 seconds
+                this.log(`Đang nghỉ 7 giờ 15 phút trước round tiếp theo...`, 'info');
+                
+                // Show countdown during sleep
+                await this.countdown(sleepSeconds);
+                this.log(`Bắt đầu round mới...`, 'info');
+            } catch (err) {
+                this.log(`Lỗi trong quá trình chạy: ${err.message}`, 'error');
+                // Wait 5 minutes before retrying if there's an error
+                await this.countdown(300);
+            }
+        }
     }
 }
 
